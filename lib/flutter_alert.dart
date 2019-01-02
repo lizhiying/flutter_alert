@@ -163,7 +163,7 @@ Widget _buildBody(String body) {
   if (body == null || body.isEmpty) {
     return null;
   }
-  return SingleChildScrollView(child: Text(body));
+  return SingleChildScrollView(child: new Container(margin: new EdgeInsets.only(top: 10.0), child:Text(body)));
 }
 
 List<Widget> _buildActionButtons(
