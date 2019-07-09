@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -76,6 +77,9 @@ void showAlert({
   /// and the platform is not iOS.
   bool barrierDismissible,
 
+  //when the Android phone back button is pressed
+  VoidCallback onPhoneBackPressed,
+
   /// Automatically adds a (localized) "Cancel" button to the list
   /// of buttons. Currently its not possible to handle the cancel
   /// button.
@@ -115,26 +119,26 @@ void showAlert({
   if (useCupertino) {
     showCupertinoDialog(
       context: context,
-      builder: (BuildContext context) =>
-          _buildDialog(context, title, body, actions, useCupertino),
+      builder: (BuildContext context) => _buildDialog(
+          context, title, body, actions, useCupertino, onPhoneBackPressed),
     );
   } else {
     showDialog(
       context: context,
       barrierDismissible: barrierDismissible,
-      builder: (BuildContext context) =>
-          _buildDialog(context, title, body, actions, useCupertino),
+      builder: (BuildContext context) => _buildDialog(
+          context, title, body, actions, useCupertino, onPhoneBackPressed),
     );
   }
 }
 
 Widget _buildDialog(
-  BuildContext context,
-  String title,
-  String body,
-  List<AlertAction> actions,
-  bool useCupertino,
-) {
+    BuildContext context,
+    String title,
+    String body,
+    List<AlertAction> actions,
+    bool useCupertino,
+    VoidCallback onPhoneBackPressed) {
   if (useCupertino) {
     return CupertinoAlertDialog(
       title: _buildTitle(title),
@@ -142,13 +146,20 @@ Widget _buildDialog(
       actions: _buildActionButtons(context, actions, useCupertino),
     );
   } else {
-    return AlertDialog(
-      title: _buildTitle(title),
-      content: _buildBody(body),
-      actions: _buildActionButtons(context, actions, useCupertino),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(5))),
-    );
+    return WillPopScope(
+        child: AlertDialog(
+          title: _buildTitle(title),
+          content: _buildBody(body),
+          actions: _buildActionButtons(context, actions, useCupertino),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(5))),
+        ),
+        onWillPop: () async {
+          if (onPhoneBackPressed != null) {
+            onPhoneBackPressed();
+          }
+          return Future.value(true);
+        });
   }
 }
 
@@ -163,7 +174,9 @@ Widget _buildBody(String body) {
   if (body == null || body.isEmpty) {
     return null;
   }
-  return SingleChildScrollView(child: new Container(margin: new EdgeInsets.only(top: 10.0), child:Text(body)));
+  return SingleChildScrollView(
+      child: new Container(
+          margin: new EdgeInsets.only(top: 10.0), child: Text(body)));
 }
 
 List<Widget> _buildActionButtons(
