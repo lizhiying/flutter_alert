@@ -122,14 +122,16 @@ void showAlert({
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => _buildDialog(
-          context, title, body, actions, useCupertino, onPhoneBackPressed,isWillPop: isWillPop),
+          context, title, body, actions, useCupertino, onPhoneBackPressed,
+          isWillPop: isWillPop),
     );
   } else {
     showDialog(
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (BuildContext context) => _buildDialog(
-          context, title, body, actions, useCupertino, onPhoneBackPressed,isWillPop: isWillPop),
+          context, title, body, actions, useCupertino, onPhoneBackPressed,
+          isWillPop: isWillPop),
     );
   }
 }
@@ -141,7 +143,7 @@ Widget _buildDialog(
     List<AlertAction> actions,
     bool useCupertino,
     VoidCallback onPhoneBackPressed,
-{bool isWillPop}) {
+    {bool isWillPop}) {
   if (useCupertino) {
     return CupertinoAlertDialog(
       title: _buildTitle(title),
