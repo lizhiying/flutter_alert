@@ -79,6 +79,8 @@ void showAlert({
 
   //when the Android phone back button is pressed
   VoidCallback onPhoneBackPressed,
+  //Is it allowed to disappear when the Android phone back button is pressed
+  bool isWillPop = true,
 
   /// Automatically adds a (localized) "Cancel" button to the list
   /// of buttons. Currently its not possible to handle the cancel
@@ -120,14 +122,14 @@ void showAlert({
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => _buildDialog(
-          context, title, body, actions, useCupertino, onPhoneBackPressed),
+          context, title, body, actions, useCupertino, onPhoneBackPressed,isWillPop: isWillPop),
     );
   } else {
     showDialog(
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (BuildContext context) => _buildDialog(
-          context, title, body, actions, useCupertino, onPhoneBackPressed),
+          context, title, body, actions, useCupertino, onPhoneBackPressed,isWillPop: isWillPop),
     );
   }
 }
@@ -138,7 +140,8 @@ Widget _buildDialog(
     String body,
     List<AlertAction> actions,
     bool useCupertino,
-    VoidCallback onPhoneBackPressed) {
+    VoidCallback onPhoneBackPressed,
+{bool isWillPop}) {
   if (useCupertino) {
     return CupertinoAlertDialog(
       title: _buildTitle(title),
@@ -158,7 +161,7 @@ Widget _buildDialog(
           if (onPhoneBackPressed != null) {
             onPhoneBackPressed();
           }
-          return Future.value(true);
+          return Future.value(isWillPop);
         });
   }
 }
