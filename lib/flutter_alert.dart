@@ -11,6 +11,8 @@ class AlertAction {
   /// Required.
   final String text;
 
+  final TextStyle textStyle;
+
   /// Defines if the button is the default button.
   /// Set this value to true to render the button with a bold text weight.
   /// The default value is false.
@@ -46,6 +48,7 @@ class AlertAction {
 
     /// Callback handler when this button was pressed.
     @required this.onPressed,
+    @required this.textStyle,
 
     /// Defines if the button will automatically close the dialog by
     /// trigger a Navigation pop action or not.
@@ -61,10 +64,13 @@ void showAlert({
 
   /// The title of the modal dialog.
   String title,
+  TextStyle titleStyle,
 
   /// The body (or content) of the modal dialog.
   /// The text was automatically rendered in a ScrollView.
   String body,
+  TextStyle bodyStyle,
+  TextStyle cancelTextStyle,
 
   /// A List of actions. For each action there was shown one button.
   /// If there was no action defined, a default action with a
@@ -112,6 +118,7 @@ void showAlert({
                 .cancelButtonLabel
                 .substring(1)
                 .toLowerCase(),
+        textStyle: cancelTextStyle,
         onPressed: () {}));
   }
   if (useCupertino == null) {
@@ -123,7 +130,7 @@ void showAlert({
       context: context,
       builder: (BuildContext context) => _buildDialog(
           context, title, body, actions, useCupertino, onPhoneBackPressed,
-          isWillPop: isWillPop),
+          isWillPop: isWillPop, titleStyle: titleStyle, bodyStyle: bodyStyle),
     );
   } else {
     showDialog(
@@ -131,7 +138,7 @@ void showAlert({
       barrierDismissible: barrierDismissible,
       builder: (BuildContext context) => _buildDialog(
           context, title, body, actions, useCupertino, onPhoneBackPressed,
-          isWillPop: isWillPop),
+          isWillPop: isWillPop, titleStyle: titleStyle, bodyStyle: bodyStyle),
     );
   }
 }
@@ -143,18 +150,27 @@ Widget _buildDialog(
     List<AlertAction> actions,
     bool useCupertino,
     VoidCallback onPhoneBackPressed,
-    {bool isWillPop}) {
+    {bool isWillPop,
+    TextStyle titleStyle,
+    TextStyle bodyStyle}) {
   if (useCupertino) {
-    return CupertinoAlertDialog(
-      title: _buildTitle(title),
-      content: _buildBody(body),
-      actions: _buildActionButtons(context, actions, useCupertino),
-    );
+    return WillPopScope(
+        child: CupertinoAlertDialog(
+          title: _buildTitle(title, titleStyle),
+          content: _buildBody(body, bodyStyle),
+          actions: _buildActionButtons(context, actions, useCupertino),
+        ),
+        onWillPop: () async {
+          if (onPhoneBackPressed != null) {
+            onPhoneBackPressed();
+          }
+          return Future.value(isWillPop);
+        });
   } else {
     return WillPopScope(
         child: AlertDialog(
-          title: _buildTitle(title),
-          content: _buildBody(body),
+          title: _buildTitle(title, titleStyle),
+          content: _buildBody(body, bodyStyle),
           actions: _buildActionButtons(context, actions, useCupertino),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(5))),
@@ -168,20 +184,27 @@ Widget _buildDialog(
   }
 }
 
-Widget _buildTitle(String title) {
+Widget _buildTitle(String title, TextStyle titleStyle) {
   if (title == null || title.isEmpty) {
     return null;
   }
-  return Text(title);
+  return Text(
+    title,
+    style: titleStyle,
+  );
 }
 
-Widget _buildBody(String body) {
+Widget _buildBody(String body, TextStyle bodyStyle) {
   if (body == null || body.isEmpty) {
     return null;
   }
   return SingleChildScrollView(
       child: new Container(
-          margin: new EdgeInsets.only(top: 10.0), child: Text(body)));
+          margin: new EdgeInsets.only(top: 10.0),
+          child: Text(
+            body,
+            style: bodyStyle,
+          )));
 }
 
 List<Widget> _buildActionButtons(
@@ -213,9 +236,7 @@ Widget _buildActionButton(
     return CupertinoDialogAction(
       child: Text(
         action.text != null ? action.text : "",
-        style: action.isDefaultAction
-            ? TextStyle(fontWeight: FontWeight.bold)
-            : null,
+        style: action.textStyle,
       ),
       isDefaultAction: action.isDefaultAction,
       isDestructiveAction: action.isDestructiveAction,
